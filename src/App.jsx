@@ -1,6 +1,8 @@
 import { useState } from "react"; // Importa o hook useState do React para gerenciar estados.
 import BackCard from "./components/BackCard"; // Componente para a parte traseira do cartão.
 import CardFront from "./components/FrontCard"; // Componente para a parte frontal do cartão.
+import { ToastContainer, toast } from 'react-toastify';
+import instance from "./api/instance";
 
 export default function App() {
   // Estados para armazenar informações do cartão e do pagamento.
@@ -12,17 +14,54 @@ export default function App() {
   const [senha, setSenha] = useState(""); // Estado para a senha do cartão.
 
   // Função chamada ao clicar no botão PAGAR.
-  function pagar() {
-    console.log(nome); // Exibe o nome no console.
-    console.log(numero); // Exibe o número do cartão no console.
-    console.log(mes); // Exibe o mês de expiração no console.
-    console.log(ano); // Exibe o ano de expiração no console.
-    console.log(cvv); // Exibe o CVV no console.
-    console.log(senha); // Exibe a senha no console.
+  async function pagar() {
+    if(!nome || !numero || !mes || !ano || !cvv || !senha){
+    return toast.error("Preencha todos os campos")
+    }
+
+    if(numero.length !==16){
+      return toast.error("Número do cartão inválido")
+
+    }
+    if(cvv.length !==3){
+      return toast.error("CVV inválido")
+    }
+    if(ano.length !==2){
+      return toast.error("Ano de expiração inválida")
+    }
+    if(mes > 12 || mes < 1){
+      return toast.error("Data de expiração inválida")
+    }
+    if(senha.length < 4){
+      return toast.error("Senha inválida")
+
+    }
+
+    try {
+      const reponse = await instance.post("/creditcards", {
+      name: nome,
+      number: numero,
+      expiration: `${mes}/${ano}`,
+      cvv: cvv,
+      password: senha
+      })
+      
+      return toast.success("Pagamento realizado com sucesso")
+
+    } catch (error) {
+      return toast.error("Erro ao processar o pagamento")
+      
+    }
   }
 
   return (
     <div className="w-full h-screen flex">
+      <ToastContainer 
+      position="top-right"
+      autoClose={5000}
+      theme="colored"
+      
+      />
       {/* Seção da esquerda para exibir a parte visual do cartão */}
       <div className="w-[40%] relative h-full bg-[#271540]">
         <div className="absolute top-10 left-50">
