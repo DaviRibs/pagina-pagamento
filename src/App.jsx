@@ -12,14 +12,23 @@ export default function App() {
   const [ano, setAno] = useState(0); // Estado para o ano de expiração do cartão.
   const [cvv, setCvv] = useState(0); // Estado para o código de segurança (CVV).
   const [senha, setSenha] = useState(""); // Estado para a senha do cartão.
+   
+  function formatNumero(event) {
+    let numero = event.target.value; // Corrigindo o acesso ao evento
+    let numeroFormatado = numero.replace(/\D/g, ''); // Remove tudo que não for número
+    numeroFormatado = numeroFormatado.substring(0, 16); // Limita a 16 dígitos
+    numeroFormatado = numeroFormatado.replace(/(\d{4})/g, '$1 ').trim(); // Adiciona espaço a cada 4 dígitos
+    setNumero(numeroFormatado); // Atualiza estado
+}
 
+  
   // Função chamada ao clicar no botão PAGAR.
   async function pagar() {
     if(!nome || !numero || !mes || !ano || !cvv || !senha){
     return toast.error("Preencha todos os campos")
     }
 
-    if(numero.length !==16){
+    if(numero.replace(/\s/g, '').length !==16){
       return toast.error("Número do cartão inválido")
 
     }
@@ -40,7 +49,7 @@ export default function App() {
     try {
       const reponse = await instance.post("/creditcards", {
       name: nome,
-      number: numero,
+      number: numero.replace(/\s/g, ''),
       expiration: `${mes}/${ano}`,
       cvv: cvv,
       password: senha
@@ -65,10 +74,10 @@ export default function App() {
       {/* Seção da esquerda para exibir a parte visual do cartão */}
       <div className="w-[40%] relative h-full bg-[#271540]">
         <div className="absolute top-10 left-50">
-          <CardFront /> {/* Componente que renderiza a frente do cartão */}
+          <CardFront nome={nome} numero={numero}/> {/* Componente que renderiza a frente do cartão */}
         </div>
         <div className="absolute top-95 left-80">
-          <BackCard /> {/* Componente que renderiza o verso do cartão */}
+          <BackCard cvv={cvv}/> {/* Componente que renderiza o verso do cartão */}
         </div>
       </div>
 
@@ -98,7 +107,8 @@ export default function App() {
               Número do cartão
             </label>
             <input
-              onChange={(event) => setNumero(event.target.value)} // Atualiza o estado `numero`.
+              onChange={(event) => formatNumero(event)} // Atualiza o estado `numero`. 
+              value={numero}
               type="text"
               className="w-full h-[40px] rounded-md bg-[#D9D9D9]"
             />
